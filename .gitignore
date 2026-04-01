@@ -1,0 +1,9 @@
+api-express/node_modules/
+api-fastapi/.venv/
+api-fastapi/**/__pycache__/
+api-fastapi/.pytest_cache/
+api-laravel/vendor/
+api-laravel/.env
+api-express/.env
+api-fastapi/.env
+*.pyc
