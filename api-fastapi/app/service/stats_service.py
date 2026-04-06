@@ -1,28 +1,20 @@
-from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from ..models_todos import TaskProjection
 
 
-def calculate_stats(db_todos, db_logs, todo_model, log_model):
-    total_todos = db_todos.query(todo_model).count()
-    completed = db_todos.query(todo_model).filter(todo_model.completed.is_(True)).count()
-    pending = total_todos - completed
-
-    total_logs = db_logs.query(log_model).count()
-
-    most_action = (
-        db_logs.query(log_model.action, func.count(log_model.action).label("count"))
-        .group_by(log_model.action)
-        .order_by(func.count(log_model.action).desc())
-        .first()
+def calculate_stats(db: Session, user_id: int) -> dict[str, int]:
+    active_query = db.query(TaskProjection).filter(
+        TaskProjection.user_id == user_id,
+        TaskProjection.is_deleted.is_(False),
     )
 
-    most_frequent_action = most_action[0] if most_action else None
-    average_logs_per_todo = round((total_logs / total_todos), 2) if total_todos > 0 else 0.0
+    total = active_query.count()
+    completed = active_query.filter(TaskProjection.completed.is_(True)).count()
+    pending = total - completed
 
     return {
-        "total": total_todos,
+        "total": total,
         "completed": completed,
         "pending": pending,
-        "total_logs": total_logs,
-        "most_frequent_action": most_frequent_action,
-        "average_logs_per_todo": average_logs_per_todo,
     }

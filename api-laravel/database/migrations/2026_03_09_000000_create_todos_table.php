@@ -8,17 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('todos', function (Blueprint $table) {
+        Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 255);
-            $table->string('description')->default('');
-            $table->boolean('completed')->default(false);
+            $table->string('event_id')->unique();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('todo_id')->nullable();
+            $table->string('action', 64);
+            $table->string('message', 255);
+            $table->string('request_id', 191);
+            $table->string('subject_email')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamps();
+
+            $table->index('user_id');
+            $table->index('todo_id');
+            $table->index('action');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('todos');
+        Schema::dropIfExists('logs');
     }
 };

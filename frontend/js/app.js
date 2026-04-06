@@ -1,28 +1,56 @@
 import {
-    createLog,
     createTodo,
     deleteTodo,
+    getCurrentUser,
     getStats,
     getTodos,
+    loginUser,
+    logoutUser,
+    registerUser,
     toggleTodo
 } from "./todoService.js";
 
-const form = document.getElementById("todoForm");
+const statusMessage = document.getElementById("statusMessage");
+const authSection = document.getElementById("authSection");
+const appSection = document.getElementById("appSection");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const logoutButton = document.getElementById("logoutButton");
+const currentUserName = document.getElementById("currentUserName");
+const currentUserEmail = document.getElementById("currentUserEmail");
+const todoForm = document.getElementById("todoForm");
 const todoList = document.getElementById("todoList");
+const emptyState = document.getElementById("emptyState");
 const totalSpan = document.getElementById("total");
 const completedSpan = document.getElementById("completed");
 const pendingSpan = document.getElementById("pending");
-const statusMessage = document.getElementById("statusMessage");
 
-function setStatus(message, type = "info") {
+let currentUser = null;
+
+function setStatus(message = "", type = "info") {
     statusMessage.textContent = message;
-    statusMessage.classList.remove("error", "warning");
-    if (type === "error") {
-        statusMessage.classList.add("error");
+    statusMessage.className = "status";
+    if (type !== "info") {
+        statusMessage.classList.add(type);
     }
-    if (type === "warning") {
-        statusMessage.classList.add("warning");
-    }
+}
+
+function showApp(user) {
+    currentUser = user;
+    authSection.classList.add("hidden");
+    appSection.classList.remove("hidden");
+    currentUserName.textContent = user.name;
+    currentUserEmail.textContent = user.email;
+}
+
+function showAuth() {
+    currentUser = null;
+    authSection.classList.remove("hidden");
+    appSection.classList.add("hidden");
+    currentUserName.textContent = "Usuario";
+    currentUserEmail.textContent = "";
+    todoList.innerHTML = "";
+    renderStats({ total: 0, completed: 0, pending: 0 });
 }
 
 function renderStats(stats) {
@@ -31,53 +59,74 @@ function renderStats(stats) {
     pendingSpan.textContent = stats.pending;
 }
 
+function createActionButton(label, className, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = className;
+    button.textContent = label;
+    button.addEventListener("click", onClick);
+    return button;
+}
+
 function renderTodosList(todos) {
     todoList.innerHTML = "";
+    emptyState.classList.toggle("hidden", todos.length > 0);
 
     todos.forEach(todo => {
-        const li = document.createElement("li");
+        const item = document.createElement("li");
+        item.className = "todo-item";
         if (todo.completed) {
-            li.classList.add("completed");
+            item.classList.add("completed");
         }
 
-        li.innerHTML = `
-            <span>${todo.title}</span>
-            <div class="actions">
-                <button class="btn-complete">✔</button>
-                <button class="btn-delete">✖</button>
-            </div>
-        `;
+        const content = document.createElement("div");
+        content.className = "todo-content";
 
-        li.querySelector(".btn-complete").addEventListener("click", async () => {
+        const title = document.createElement("strong");
+        title.textContent = todo.title;
+        content.appendChild(title);
+
+        if (todo.description) {
+            const description = document.createElement("p");
+            description.textContent = todo.description;
+            content.appendChild(description);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(createActionButton("Concluir", "btn-complete", async () => {
             try {
-                const updatedTodo = await toggleTodo(todo.id);
-                try {
-                    await createLog("toggle", updatedTodo.id, "Status da tarefa alterado.");
-                } catch (logError) {
-                    setStatus(`Tarefa atualizada, mas falhou ao registrar log: ${logError.message}`, "warning");
-                }
+                await toggleTodo(todo.id);
                 await refresh();
+                setStatus("Tarefa atualizada com sucesso.", "success");
             } catch (error) {
-                setStatus(`Erro ao atualizar tarefa: ${error.message}`, "error");
+                handleError("Erro ao atualizar tarefa", error);
             }
-        });
-
-        li.querySelector(".btn-delete").addEventListener("click", async () => {
+        }));
+        actions.appendChild(createActionButton("Excluir", "btn-delete", async () => {
             try {
                 await deleteTodo(todo.id);
-                try {
-                    await createLog("delete", todo.id, "Tarefa excluída.");
-                } catch (logError) {
-                    setStatus(`Tarefa excluída, mas falhou ao registrar log: ${logError.message}`, "warning");
-                }
                 await refresh();
+                setStatus("Tarefa excluida com sucesso.", "success");
             } catch (error) {
-                setStatus(`Erro ao excluir tarefa: ${error.message}`, "error");
+                handleError("Erro ao excluir tarefa", error);
             }
-        });
+        }));
 
-        todoList.appendChild(li);
+        item.appendChild(content);
+        item.appendChild(actions);
+        todoList.appendChild(item);
     });
+}
+
+function handleError(prefix, error) {
+    if (error?.status === 401) {
+        showAuth();
+        setStatus("Sua sessao expirou. Entre novamente.", "warning");
+        return;
+    }
+
+    setStatus(`${prefix}: ${error.message}`, "error");
 }
 
 async function refresh() {
@@ -86,36 +135,87 @@ async function refresh() {
     renderStats(stats);
 }
 
-form.addEventListener("submit", async event => {
+loginForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        const user = await loginUser({
+            email: document.getElementById("loginEmail").value.trim(),
+            password: document.getElementById("loginPassword").value
+        });
+        loginForm.reset();
+        showApp(user);
+        await refresh();
+        setStatus("Login realizado com sucesso.", "success");
+    } catch (error) {
+        handleError("Falha ao entrar", error);
+    }
+});
+
+registerForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        const user = await registerUser({
+            name: document.getElementById("registerName").value.trim(),
+            email: document.getElementById("registerEmail").value.trim(),
+            password: document.getElementById("registerPassword").value
+        });
+        registerForm.reset();
+        showApp(user);
+        await refresh();
+        setStatus("Conta criada com sucesso.", "success");
+    } catch (error) {
+        handleError("Falha ao criar conta", error);
+    }
+});
+
+logoutButton.addEventListener("click", async () => {
+    try {
+        await logoutUser();
+        showAuth();
+        setStatus("Sessao encerrada.", "success");
+    } catch (error) {
+        handleError("Falha ao encerrar sessao", error);
+    }
+});
+
+todoForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     const title = document.getElementById("title").value.trim();
     const description = document.getElementById("description").value.trim();
 
     if (!title) {
-        setStatus("Título é obrigatório.", "error");
+        setStatus("Titulo e obrigatorio.", "error");
         return;
     }
 
     try {
-        const createdTodo = await createTodo({ title, description });
-        try {
-            await createLog("create", createdTodo.id, "Tarefa criada.");
-        } catch (logError) {
-            setStatus(`Tarefa criada, mas falhou ao registrar log: ${logError.message}`, "warning");
-        }
-
-        form.reset();
+        await createTodo({ title, description });
+        todoForm.reset();
         await refresh();
-        if (!statusMessage.classList.contains("warning")) {
-            setStatus("Operação concluída.");
-        }
+        setStatus("Tarefa criada com sucesso.", "success");
     } catch (error) {
-        setStatus(`Erro ao criar tarefa: ${error.message}`, "error");
+        handleError("Erro ao criar tarefa", error);
     }
 });
 
-refresh().catch(error => {
-    renderStats({ total: 0, completed: 0, pending: 0 });
-    setStatus(`Falha ao carregar dados iniciais: ${error.message}`, "error");
-});
+async function bootstrap() {
+    try {
+        const user = await getCurrentUser();
+        showApp(user);
+        await refresh();
+    } catch (error) {
+        if (error?.status === 401) {
+            showAuth();
+            setStatus("Entre com sua conta para acessar suas tarefas.");
+            return;
+        }
+
+        showAuth();
+        handleError("Falha ao carregar estado inicial", error);
+    }
+}
+
+bootstrap();

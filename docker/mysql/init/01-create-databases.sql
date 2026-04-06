@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS `projeto-log-2026`;
+CREATE DATABASE IF NOT EXISTS `projeto-analytics-2026`;

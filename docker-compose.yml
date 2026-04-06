@@ -6,13 +6,13 @@ services:
     container_name: todo_mysql
     restart: always
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes" 
-    
-      MYSQL_DATABASE: projeto-log-2026
+      MYSQL_ROOT_PASSWORD: todo_root_password
+      MYSQL_DATABASE: db-projeto-2026
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
 
 volumes:
   mysql_data:

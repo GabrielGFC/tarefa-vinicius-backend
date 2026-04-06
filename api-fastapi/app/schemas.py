@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -5,6 +7,13 @@ class StatsResponse(BaseModel):
     total: int
     completed: int
     pending: int
-    total_logs: int
-    most_frequent_action: str | None
-    average_logs_per_todo: float
+
+
+class InternalTaskEvent(BaseModel):
+    event_id: str
+    event_type: str
+    user_id: int
+    todo_id: int
+    completed: bool | None = None
+    occurred_at: datetime
+    request_id: str

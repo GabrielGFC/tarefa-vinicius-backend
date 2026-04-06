@@ -2,38 +2,111 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>To-Do List Microsserviços</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List Distribuido</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <main class="container">
+        <section class="hero">
+            <div>
+                <p class="eyebrow">TODO List Distribuido</p>
+                <h1>Autenticacao, ownership e estatisticas por usuario.</h1>
+                <p class="subtitle">Entre com a sua conta para gerenciar apenas as suas tarefas e acompanhar seus numeros em tempo real.</p>
+            </div>
+        </section>
 
-<div class="container">
-    <h1>To-Do List Microsserviços</h1>
-    <p id="statusMessage" class="status"></p>
+        <p id="statusMessage" class="status" aria-live="polite"></p>
 
-    <div class="card">
-        <h2>Nova Tarefa</h2>
-        <form id="todoForm">
-            <input type="text" id="title" placeholder="Título" required>
-            <textarea id="description" placeholder="Descrição"></textarea>
-            <button type="submit">Adicionar</button>
-        </form>
-    </div>
+        <section id="authSection" class="auth-grid">
+            <article class="card auth-card">
+                <h2>Entrar</h2>
+                <form id="loginForm" class="stack-form">
+                    <label>
+                        <span>Email</span>
+                        <input type="email" id="loginEmail" autocomplete="email" required>
+                    </label>
+                    <label>
+                        <span>Senha</span>
+                        <input type="password" id="loginPassword" autocomplete="current-password" required>
+                    </label>
+                    <button type="submit">Entrar</button>
+                </form>
+            </article>
 
-    <div class="card">
-        <h2>Lista de Tarefas</h2>
-        <ul id="todoList"></ul>
-    </div>
+            <article class="card auth-card">
+                <h2>Criar conta</h2>
+                <form id="registerForm" class="stack-form">
+                    <label>
+                        <span>Nome</span>
+                        <input type="text" id="registerName" autocomplete="name" required>
+                    </label>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" id="registerEmail" autocomplete="email" required>
+                    </label>
+                    <label>
+                        <span>Senha</span>
+                        <input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required>
+                    </label>
+                    <button type="submit">Criar conta</button>
+                </form>
+            </article>
+        </section>
 
-    <div class="card">
-        <h2>Estatísticas</h2>
-        <p>Total: <span id="total">0</span></p>
-        <p>Concluídas: <span id="completed">0</span></p>
-        <p>Pendentes: <span id="pending">0</span></p>
-    </div>
-</div>
+        <section id="appSection" class="hidden">
+            <article class="card toolbar">
+                <div>
+                    <p class="eyebrow">Sessao ativa</p>
+                    <h2 id="currentUserName">Usuario</h2>
+                    <p id="currentUserEmail" class="muted"></p>
+                </div>
+                <button id="logoutButton" class="secondary" type="button">Sair</button>
+            </article>
 
-<script type="module" src="js/app.js"></script>
+            <article class="card">
+                <h2>Nova tarefa</h2>
+                <form id="todoForm" class="stack-form">
+                    <label>
+                        <span>Titulo</span>
+                        <input type="text" id="title" maxlength="255" required>
+                    </label>
+                    <label>
+                        <span>Descricao</span>
+                        <textarea id="description" maxlength="255"></textarea>
+                    </label>
+                    <button type="submit">Adicionar</button>
+                </form>
+            </article>
 
+            <div class="dashboard-grid">
+                <article class="card">
+                    <h2>Lista de tarefas</h2>
+                    <ul id="todoList" class="todo-list"></ul>
+                    <p id="emptyState" class="muted hidden">Nenhuma tarefa cadastrada.</p>
+                </article>
+
+                <article class="card stats-card">
+                    <h2>Estatisticas</h2>
+                    <div class="stats-grid">
+                        <div>
+                            <span class="stat-label">Total</span>
+                            <strong id="total">0</strong>
+                        </div>
+                        <div>
+                            <span class="stat-label">Concluidas</span>
+                            <strong id="completed">0</strong>
+                        </div>
+                        <div>
+                            <span class="stat-label">Pendentes</span>
+                            <strong id="pending">0</strong>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

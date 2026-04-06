@@ -1,15 +1,15 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.sql import func
 
-BaseTodos = declarative_base()
+Base = declarative_base()
 
 
-class Todo(BaseTodos):
-    __tablename__ = "todos"
+class TaskProjection(Base):
+    __tablename__ = "task_projection"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False)
-    description = Column(String(255), nullable=False, default="")
+    todo_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
     completed = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=True)
-    updated_at = Column(DateTime, nullable=True)
+    is_deleted = Column(Boolean, nullable=False, default=False)
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())

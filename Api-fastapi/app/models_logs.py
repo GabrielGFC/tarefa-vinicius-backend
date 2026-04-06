@@ -1,14 +1,11 @@
-from sqlalchemy import Column, DateTime, Integer, String
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.sql import func
 
-BaseLogs = declarative_base()
+from .models_todos import Base
 
 
-class Log(BaseLogs):
-    __tablename__ = "logs"
+class ProcessedEvent(Base):
+    __tablename__ = "processed_events"
 
-    id = Column(Integer, primary_key=True, index=True)
-    action = Column(String(255), nullable=False)
-    todo_id = Column(Integer, nullable=False)
-    message = Column(String(255), nullable=True)
-    created_at = Column(DateTime, nullable=True)
+    event_id = Column(String(191), primary_key=True)
+    processed_at = Column(DateTime, nullable=False, server_default=func.now())
