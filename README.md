@@ -417,3 +417,35 @@ docker compose up --build
 - O `frontend` fala diretamente com `api-express` e `api-fastapi`.
 - O `api-laravel` e o endpoint interno do `api-fastapi` nao sao para consumo direto do navegador.
 - O `JWT` fica em cookie HttpOnly.
+
+## Rotas das Apis
+
+### API Express (Node.js) - Autenticacao e Tarefas
+**Porta:** `3001`
+
+- `GET /api/health` - Healthcheck da API.
+- `POST /api/register` - Cria um novo usuario.
+- `POST /api/login` - Autenticacao do usuario (define cookie HttpOnly).
+- `POST /api/logout` - Encerra a sessao do usuario (limpa cookie).
+- `GET /api/me` - Retorna os dados do usuario logado (Requer Autenticacao).
+- `GET /api/todos` - Lista as tarefas do usuario logado (Requer Autenticacao).
+- `POST /api/todos` - Cria uma nova tarefa (Requer Autenticacao).
+- `PATCH /api/todos/:id/toggle` - Alterna o status (concluido/pendente) de uma tarefa (Requer Autenticacao).
+- `DELETE /api/todos/:id` - Exclui uma tarefa (Requer Autenticacao).
+
+### API Laravel (PHP) - Servico de Logs
+**Porta:** `8000`
+
+- `GET /` - Pagina de welcome padrao do Laravel.
+- `GET /up` - Healthcheck interno nativo do Laravel 11.
+- `GET /api/health` - Healthcheck da API.
+- `POST /internal/logs` - Salva logs de auditoria (Requer Header `X-Internal-Token`).
+- `GET /internal/logs` - Retorna os logs armazenados (Requer Header `X-Internal-Token`).
+
+### API FastAPI (Python) - Servico Analitico
+**Porta:** `8001`
+
+- `GET /api/health` - Healthcheck da API.
+- `POST /internal/task-events` - Recebe eventos internos de tarefas atraves do pattern de outbox (Requer Header `X-Internal-Token`).
+- `GET /api/stats` - Retorna as estatisticas e contagem de tarefas do usuario logado (Requer Autenticacao via Cookie).
+
